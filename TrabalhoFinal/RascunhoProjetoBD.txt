@@ -1,0 +1,147 @@
+	O projeto baseia-se em um buffet contratado para realizar eventos. A ideia se pauta na implementação de um banco de dados que registram diferentes outros buffets, esses que são identificados com: ID de buffet, nome e descrição. Todo buffet possui um ou mais donos, que estarão ligados à especialização de "pessoa", a qual possui um identificador CPF, nome, contato; as especializações de pessoa serão "sócio" que terá a participação do buffet e funcionários com o tipo de função. Cada buffet tem seu próprio menu, onde haverá opções de cardápio contendo seu ID do produto, nome, preço e descrição. Dependendo do buffet, alguns produtos são terceirizados por um fornecedor que possui um ID, nome, data e a transportadora que realizou a entrega do pedido. O pedido contém os itens que foram encomendados na entidade "item" que possui um ID, detalhes, quantidade pedida e preço.
+	O cliente (pessoa física ou jurídica) pode contratar o buffet que é responsável por cozinhar as preparações, além de servir as comidas e bebidas do evento, tendo como atributos: ID do evento, data, hora de início, hora término e descrição. Toda festa é realizada em um local de evento que possui um identificador do local, nome, endereço e descrição. Cada evento tem um buffet contratado que possui uma equipe de funcionários que são contratados juntos: garçons, cozinheiros e motorista da van. O motorista da van é um caso à parte, pois precisa registrar sua CNH já que ele irá transportar toda a equipe. Para cada evento será contratado uma van para levar os ingredientes e a equipe do buffet, que será registrada com o RENAVAM do veículo, placa, veículo, a capacidade do veículo e o preço. Através do trajeto será calculado a distância e com isso já definirá o preço da viagem.
+
+
+Buffet(ID_Buffet, nome, descrição)
+Cardápio(Numero_item, #ID_Buffet, preço, descrição)
+Receita(#Numero_item, #ID_Buffet, tempo de preparo, ingredientes)
+Pedido(#Numero_item_Cardapio, #Numero_pedido, #data_pedido)
+Item(Numero_Pedido, detalhes, quantidade, preço)
+Fornecedor(CPF/CNPJ, #Numero_Pedido, nome, data_pedido, transportadora)
+Cliente(ID_Cliente, Nome, #endereço, #contato)
+Evento(ID_Evento, Data_hora_inicio, Data_hora_fim, descrição, #ID_Local)
+Contrato(#ID_Evento, #ID_Cliente, #ID_Buffet, Data_contrato, descrição_contrato)
+Local do evento(ID_local, CEP, Numero, complemento, nome, descrição, fotos)
+Trajeto(#ID_Local, #Renavam, #preço, distancia)
+Transporte(RENAVAM, veiculo, placa, capacidade, preço, #CNH)
+Sócio(#CPF, #nome, participação)
+Funcionario(#CPF, #nome, tipo)
+Motorista(#CPF, #nome, #tipo, CNH)
+
+CREATE TABLE Buffet (
+    ID_Buffet INT PRIMARY KEY,
+    nome VARCHAR(255),
+    descricao TEXT
+);
+
+CREATE TABLE Cardapio (
+    Numero_item INT PRIMARY KEY,
+    ID_Buffet INT,
+    preco DECIMAL(10, 2),
+    descricao TEXT,
+    FOREIGN KEY (ID_Buffet) REFERENCES Buffet(ID_Buffet)
+);
+
+CREATE TABLE Receita (
+    Numero_item INT,
+    ID_Buffet INT,
+    tempo_preparo INT,
+    ingredientes TEXT,
+    PRIMARY KEY (Numero_item, ID_Buffet),
+    FOREIGN KEY (Numero_item) REFERENCES Cardapio(Numero_item),
+    FOREIGN KEY (ID_Buffet) REFERENCES Buffet(ID_Buffet)
+);
+
+CREATE TABLE Pedido (
+    Numero_item_Cardapio INT,
+    Numero_Pedido INT,
+    data_pedido DATE,
+    PRIMARY KEY (Numero_item_Cardapio, Numero_Pedido),
+    FOREIGN KEY (Numero_item_Cardapio) REFERENCES Cardapio(Numero_item)
+);
+
+CREATE TABLE Item (
+    Numero_Pedido INT,
+    detalhes TEXT,
+    quantidade INT,
+    preco DECIMAL(10, 2),
+    PRIMARY KEY (Numero_Pedido),
+    FOREIGN KEY (Numero_Pedido) REFERENCES Pedido(Numero_Pedido)
+);
+
+CREATE TABLE Fornecedor (
+    CPFCNPJ VARCHAR(14) PRIMARY KEY,
+    Numero_Pedido INT,
+    nome VARCHAR(255),
+    data_pedido DATE,
+    transportadora VARCHAR(255),
+    FOREIGN KEY (Numero_Pedido) REFERENCES Pedido(Numero_Pedido)
+);
+
+CREATE TABLE Cliente (
+    ID_Cliente INT PRIMARY KEY,
+    Nome VARCHAR(255),
+    endereco VARCHAR(255),
+    contato VARCHAR(15)
+);
+
+CREATE TABLE Evento (
+    ID_Evento INT PRIMARY KEY,
+    Data_hora_inicio DATETIME,
+    Data_hora_fim DATETIME,
+    descricao TEXT,
+    ID_Local INT,
+    FOREIGN KEY (ID_Local) REFERENCES Local_do_evento(ID_Local)
+);
+
+CREATE TABLE Contrato (
+    ID_Evento INT,
+    ID_Cliente INT,
+    ID_Buffet INT,
+    Data_contrato DATE,
+    descricao_contrato TEXT,
+    PRIMARY KEY (ID_Evento, ID_Cliente, ID_Buffet),
+    FOREIGN KEY (ID_Evento) REFERENCES Evento(ID_Evento),
+    FOREIGN KEY (ID_Cliente) REFERENCES Cliente(ID_Cliente),
+    FOREIGN KEY (ID_Buffet) REFERENCES Buffet(ID_Buffet)
+);
+
+CREATE TABLE Local_do_evento (
+    ID_Local INT PRIMARY KEY,
+    CEP VARCHAR(10),
+    Numero INT,
+    complemento VARCHAR(255),
+    nome VARCHAR(255),
+    descricao TEXT,
+    fotos TEXT
+);
+
+CREATE TABLE Trajeto (
+    ID_Local INT,
+    Renavam VARCHAR(20),
+    preco DECIMAL(10, 2),
+    distancia DECIMAL(10, 2),
+    PRIMARY KEY (ID_Local, Renavam),
+    FOREIGN KEY (ID_Local) REFERENCES Local_do_evento(ID_Local)
+);
+
+CREATE TABLE Transporte (
+    RENAVAM VARCHAR(20) PRIMARY KEY,
+    veiculo VARCHAR(255),
+    placa VARCHAR(10),
+    capacidade INT,
+    preco DECIMAL(10, 2),
+    CNH VARCHAR(20)
+);
+
+CREATE TABLE Sócio (
+    CPF VARCHAR(14) PRIMARY KEY,
+    nome VARCHAR(255),
+    participacao DECIMAL(5, 2)
+);
+
+CREATE TABLE Funcionario (
+    CPF VARCHAR(14) PRIMARY KEY,
+    nome VARCHAR(255),
+    tipo VARCHAR(50)
+);
+
+CREATE TABLE Motorista (
+    CPF VARCHAR(14) PRIMARY KEY,
+    nome VARCHAR(255),
+    tipo VARCHAR(50),
+    CNH VARCHAR(20),
+    FOREIGN KEY (CPF) REFERENCES Funcionario(CPF)
+);
+
+ 
